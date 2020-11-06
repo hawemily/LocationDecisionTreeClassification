@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # IMPORTING LIBRARIES
-
-# In[20]:
-
-
+# IMPORTING LIBRARIES
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -14,36 +10,18 @@ import os
 
 
 # # IMPORTING THE DATA INTO NUMPY ARRAYS
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
 clean_arr = np.loadtxt("wifi_db/clean_dataset.txt")
 noisy_arr = np.loadtxt("wifi_db/noisy_dataset.txt")
 
 
-# # DEFINING FIXED VALUES AND LABELS
-
-# In[5]:
-
-
+# DEFINING FIXED VALUES AND LABELS
 LABEL_COL = clean_arr.shape[1] - 1 
 DATASET_SIZE = clean_arr.shape[0]
 NUM_FOLDS = 10
 labels = [1, 2, 3, 4]
 
 
-# # DEFINING THE NODE CLASS
-
-# In[6]:
-
-
+# DEFINING THE NODE CLASS
 class Node():
 
     # if node is leaf, value is used to store the class label that the data point has been classified into
@@ -75,11 +53,7 @@ class Node():
             return 'x_' + str(self.attr) + ' > ' + str(self.value)
 
 
-# # FUNCTIONS FOR TREE CALCULATIONS
-
-# In[7]:
-
-
+# FUNCTIONS FOR TREE CALCULATIONS
 def count_leafs(root):
     if root is None :
         return 0
@@ -95,11 +69,7 @@ def calc_depth(root):
     return max(calc_depth(root.left), calc_depth(root.right)) + 1
 
 
-# # FUNCTIONS FOR CALCULATIONS
-
-# In[8]:
-
-
+# FUNCTIONS FOR CALCULATIONS
 def entropy(dataset):
     dataset_size,_ = dataset.shape
     res = np.zeros(len(labels))
@@ -130,11 +100,7 @@ def find_majority_label(dataset):
     return transformed.index(max(transformed)) + 1
 
 
-# # FUNCTIONS FOR VISUALISING THE TREE
-
-# In[21]:
-
-
+# FUNCTIONS FOR VISUALISING THE TREE
 node_box = dict(boxstyle="round",fc="1.0")
 leaf_box = dict(boxstyle="square", fc="lightblue")
 arrow = dict(arrowstyle="<-")
@@ -152,9 +118,10 @@ def create_plot(root, depth, filename):
     plot_tree.yOff=1.0
     plot_tree(root,(0.5,1.0),(0.5,1.0),depth,depth)
     plt.show()
-    if not os.path.exists('./trees'):
-        os.makedirs('./trees')
-    fig.savefig('trees/' + filename + '.png', bbox_inches='tight')
+    # if you want to save the images of the trees generated, uncomment section below
+    # if not os.path.exists('./trees'):
+    #     os.makedirs('./trees')
+    # fig.savefig('trees/' + filename + '.png', bbox_inches='tight')
 
 def plot_node(text, ctr, parent, node_type):
     create_plot.ax1.annotate(text,xy=parent,xycoords='axes fraction',xytext=ctr,textcoords='axes fraction',va='center',ha='center',bbox=node_type ,arrowprops=arrow)
@@ -194,11 +161,7 @@ def plot_tree(root, ctr, parent, depth, initial_depth):
     plot_tree(root.right, right, ctr, depth - 1, initial_depth)
 
 
-# # FUNCTIONS FOR EVALUATION
-
-# In[10]:
-
-
+# EVALUATION FUNCTIONS  
 def traverse_tree(root, datapoint):
     if(root.left is None and root.right is None):
         return root.label
@@ -235,11 +198,7 @@ def calculate_precision(matrix, i):
     return matrix[i][i] / sum(col)
 
 
-# # FIND SPLIT
-
-# In[11]:
-
-
+#  FIND SPLIT
 def find_split(trng_data):
 
     split_attribute = -1
@@ -284,11 +243,7 @@ def find_split(trng_data):
     return (split_attribute, split_value, split_index, final_sorted_dataset)
 
 
-# # BUILDING THE DECISION TREE MODEL
-
-# In[12]:
-
-
+# BUILDING THE DECISION TREE MODEL
 def decision_tree_learning(training_dataset, depth):
     first_label = training_dataset[0][LABEL_COL]
     if np.all(training_dataset[:, LABEL_COL] == first_label):
@@ -304,17 +259,19 @@ def decision_tree_learning(training_dataset, depth):
     return (curr_node, max(left_depth, right_depth))
 
 
-# # CROSS VALIDATION 
-
-# In[13]:
-
-
-
+# CROSS VALIDATION 
 def cross_validation(data, dataset_name):
 
     recall_per_class = np.zeros(4)
     precision_per_class = np.zeros(4)
     f1_per_class = np.zeros(4)
+    unpruned_recall_per_class = np.zeros(4)
+    unpruned_precision_per_class = np.zeros(4)
+    unpruned_f1_per_class = np.zeros(4)
+    pruned_recall_per_class = np.zeros(4)
+    pruned_precision_per_class = np.zeros(4)
+    pruned_f1_per_class = np.zeros(4)
+
     sum_accuracy_pruned = 0
     sum_accuracy_unpruned = 0
     sum_accuracy_best = 0
@@ -349,6 +306,7 @@ def cross_validation(data, dataset_name):
 
         print("Printing unpruned decision tree for iteration", i)
         print("Unpruned accuracy:", unpruned_accuracy)
+        # uncomment line below if you want to print each tree before pruning
         # create_plot(root,depth,dataset_name + '_unpruned_' + str(i))
 
         # pruning tree
@@ -361,6 +319,7 @@ def cross_validation(data, dataset_name):
 
         print("Printing pruned decision tree for iteration", i)
         print("Pruned accuracy:", pruned_accuracy)
+        # uncomment line below if you want to print each tree after pruning
         # create_plot(root,depth,dataset_name + '_pruned_' + str(i))
 
         final_confusion_matrix = None
@@ -377,15 +336,17 @@ def cross_validation(data, dataset_name):
         for i in range(len(labels)):
             recall_per_class[i] += calculate_recall(final_confusion_matrix, i)
             precision_per_class[i] += calculate_precision(final_confusion_matrix, i)
-        
+
     avg_unpruned_accuracy = sum_accuracy_unpruned / NUM_FOLDS
     avg_pruned_accuracy = sum_accuracy_pruned / NUM_FOLDS
     avg_best_accuracy = sum_accuracy_best / NUM_FOLDS
+
     print("Average accuracy without pruning: ", avg_unpruned_accuracy)
     print("Average accuracy with pruning:", avg_pruned_accuracy)
     print("Gain in accuracy from pruning:", avg_pruned_accuracy - avg_unpruned_accuracy)
     print("Average best accuracy:", avg_best_accuracy)
     print("Pruned folds:", pruned_folds)
+
     average_recall_per_class = recall_per_class / NUM_FOLDS
     print("Average recall per class:", average_recall_per_class)
     average_precision_per_class = precision_per_class / NUM_FOLDS
@@ -395,14 +356,10 @@ def cross_validation(data, dataset_name):
     avg_confusion_matrix_of_class = sum_confusion_matrix
     print("Average confusion matrix per class:\n", avg_confusion_matrix_of_class)
     
-    return (avg_best_accuracy, average_recall_per_class, average_precision_per_class, f1_per_class, avg_confusion_matrix_of_class)
+    return (root, avg_best_accuracy, average_recall_per_class, average_precision_per_class, f1_per_class, avg_confusion_matrix_of_class)
 
 
-# # PRUNING
-
-# In[14]:
-
-
+# PRUNING
 def prune(root, node, val_data):
 
     if (node.is_leaf()) :
@@ -425,14 +382,9 @@ def prune(root, node, val_data):
             node.right = right
 
 
-# In[15]:
-
-
-# cross_validation(clean_arr, 'clean')
-# cross_validation(noisy_arr, 'noisy')
-
-
-# In[22]:
+# TRAIN AND EVALUATE CLEAN AND NOISY DATA SET
+clean_tree, _, _, _, _ = cross_validation(clean_arr, 'clean')
+noisy_tree, _, _, _, _ = cross_validation(noisy_arr, 'noisy')
 
 
 if __name__ == "__main__":
@@ -441,11 +393,19 @@ if __name__ == "__main__":
         sys.exit(1)
     args = sys.argv[1:]
     file_name = args[0]
+
     arr = np.loadtxt(file_name)
-    cross_validation(arr, 'Input Data')
+    #comment out this line if you want to run test data on out trained trees
+    # as the code below trains our model on the new data set provided
+    cross_validation(arr)
+
+    # if you want to only run test data on our trained trees, uncomment section below
+    # clean_tree, _, _, _, _ = cross_validation(clean_arr, 'clean')
+    # noisy_tree, _, _, _, _ = cross_validation(noisy_arr, 'noisy')
+    # evaluate(clean_tree, arr)
+    # evaluate(dirty_tree, arr)
 
 
-# In[ ]:
 
 
 
