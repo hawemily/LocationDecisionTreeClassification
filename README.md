@@ -5,10 +5,10 @@ The dataset was provided as part of the coursework.
 
 ```
 # Clone this repository into your local environment
-git clone https://github.com/hawemily/WifiDecisionTree.git
+git clone https://github.com/hawemily/LocationDecisionTreeClassification.git
 
 # Navigate into the newly cloned directory 
-cd WifiDecisionTree/
+cd LocationDecisionTreeClassification/
 
 # Modify access permissions for the start script
 chmod u+x ./start_script.sh
