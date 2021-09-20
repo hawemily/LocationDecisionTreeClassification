@@ -1,5 +1,8 @@
 # WifiDecisionTree
 
+Train a classification decision tree model to determine the indoor location based on WIFI signal strengths collected from a mobile phone.
+The dataset was provided as part of the coursework.
+
 ```
 # Clone this repository into your local environment
 git clone https://github.com/hawemily/WifiDecisionTree.git
